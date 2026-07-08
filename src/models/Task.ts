@@ -11,6 +11,10 @@ export interface TaskItem {
   categoryId: string;
   title: string;
   notes?: string;
+
+  // Estructura Espacial (Subtareas y Orden)
+  parentId?: string; // Si es null o undefined, es una tarea raíz
+  order?: number; // Para ordenar libremente
   
   // Dependencias Topológicas (Bloqueadores)
   blockedBy: string[]; // Array de IDs de tareas que deben completarse primero

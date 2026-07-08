@@ -77,7 +77,7 @@ export class GeolocationService {
           }
         });
       },
-      (error) => {
+      () => {
         // Falla silenciosa si no se puede obtener ubicación
       },
       {

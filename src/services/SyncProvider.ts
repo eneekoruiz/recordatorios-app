@@ -34,7 +34,7 @@ export class SyncProvider {
    * Descarga de la nube las tareas que han sido modificadas desde el último Timestamp de sincronización.
    * Utiliza el campo `updated_at` para resolver conflictos (gana el registro más reciente).
    */
-  public static async pullRemoteUpdates(lastSyncTimestamp: number): Promise<TaskItem[]> {
+  public static async pullRemoteUpdates(_lastSyncTimestamp: number): Promise<TaskItem[]> {
     // Silencioso
     
     // TODO: Ejemplo para Supabase:

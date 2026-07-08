@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { CheckCircle, Trash2, Lock, Play, GripVertical } from 'lucide-react';
+import { CheckCircle, Trash2, Lock, Play, GripVertical, Link2 } from 'lucide-react';
 import { useState } from 'react';
 import type { TaskItem } from '../../models/Task';
 import { useAppStore } from '../../store/useAppStore';
@@ -14,9 +14,13 @@ interface TaskCardProps {
 }
 
 export function TaskCard({ task, virtualStyle, onComplete, onDelete, onOpenZenMode, index }: TaskCardProps) {
-  const { cycles, tasks, addDependency } = useAppStore();
+  const { cycles, tasks, nestTask, addDependency } = useAppStore();
   const taskCycle = cycles.find(c => c.id === task.cycleId);
   const [isDragOver, setIsDragOver] = useState(false);
+  const [showMenu, setShowMenu] = useState(false);
+  
+  // Para posicionar el menú contextual en click derecho
+  const [menuPos, setMenuPos] = useState({ x: 0, y: 0 });
 
   // Un task está bloqueado si alguno de sus blockedBy está PENDING
   const isBlocked = task.blockedBy && task.blockedBy.some(id => tasks[id] && tasks[id].status === 'PENDING');
@@ -27,7 +31,15 @@ export function TaskCard({ task, virtualStyle, onComplete, onDelete, onOpenZenMo
       onComplete(task.id);
     } else if (offset < -100) {
       onDelete(task.id);
+    } else if (offset < -50) {
+      setShowMenu(true); // Swipe corto izquierdo abre el menú
     }
+  };
+
+  const handleContextMenu = (e: React.MouseEvent) => {
+    e.preventDefault();
+    setMenuPos({ x: e.nativeEvent.offsetX, y: e.nativeEvent.offsetY });
+    setShowMenu(true);
   };
 
   return (
@@ -41,8 +53,8 @@ export function TaskCard({ task, virtualStyle, onComplete, onDelete, onOpenZenMo
         setIsDragOver(false);
         const draggedTaskId = e.dataTransfer.getData('text/plain');
         if (draggedTaskId && draggedTaskId !== task.id) {
-          // La tarea arrastrada bloquea a esta tarea (Ésta depende de la arrastrada)
-          addDependency(task.id, draggedTaskId);
+          // El Drag & Drop ahora anida subtareas, no bloqueos
+          nestTask(draggedTaskId, task.id);
         }
       }}
     >
@@ -57,6 +69,7 @@ export function TaskCard({ task, virtualStyle, onComplete, onDelete, onOpenZenMo
 
       {/* Tarjeta Principal */}
       <motion.div 
+        onContextMenu={handleContextMenu}
         drag="x"
         dragConstraints={{ left: -120, right: 120 }}
         dragElastic={0.2}
@@ -145,6 +158,55 @@ export function TaskCard({ task, virtualStyle, onComplete, onDelete, onOpenZenMo
             </button>
           )}
         </div>
+
+        {/* Action Menu (Swipe or Context Menu) */}
+        {showMenu && (
+          <div 
+            style={{
+              position: 'absolute',
+              top: menuPos.y || '10%',
+              right: 'var(--space-16)',
+              background: 'var(--bg-card)',
+              border: '1px solid var(--border-subtle)',
+              borderRadius: 'var(--radius-md)',
+              boxShadow: '0 8px 32px rgba(0,0,0,0.5)',
+              zIndex: 100,
+              padding: 'var(--space-8)',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 'var(--space-4)',
+              minWidth: 160
+            }}
+            onClick={(e) => e.stopPropagation()} // Prevenir cerrar inmediatamente
+          >
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8, paddingBottom: 8, borderBottom: '1px solid var(--border-subtle)' }}>
+              <span style={{ fontSize: '0.8rem', color: 'var(--text-tertiary)', fontWeight: 600 }}>ACCIONES</span>
+              <button className="btn-icon" style={{ width: 24, height: 24 }} onClick={() => setShowMenu(false)}>✕</button>
+            </div>
+            
+            <button 
+              onClick={() => {
+                const depId = prompt("Ingresa el ID de la tarea bloqueadora (Opcional UX rapida):");
+                if (depId) addDependency(task.id, depId);
+                setShowMenu(false);
+              }}
+              style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px', background: 'transparent', border: 'none', color: 'var(--text-primary)', textAlign: 'left', cursor: 'pointer', borderRadius: 4 }}
+              onMouseEnter={(e) => e.currentTarget.style.background = 'var(--bg-surface)'}
+              onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
+            >
+              <Link2 size={16} /> Vincular Bloqueo
+            </button>
+
+            <button 
+              onClick={() => { onDelete(task.id); setShowMenu(false); }}
+              style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px', background: 'transparent', border: 'none', color: 'var(--accent-red)', textAlign: 'left', cursor: 'pointer', borderRadius: 4 }}
+              onMouseEnter={(e) => e.currentTarget.style.background = 'var(--bg-surface)'}
+              onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
+            >
+              <Trash2 size={16} /> Eliminar
+            </button>
+          </div>
+        )}
       </motion.div>
     </div>
   );

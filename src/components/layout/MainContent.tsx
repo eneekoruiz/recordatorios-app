@@ -14,7 +14,7 @@ interface MainContentProps {
 // Flat representation para la virtualización
 type VirtualItemType = 
   | { type: 'header', title: string, category: string, color: string }
-  | { type: 'task', task: TaskItem };
+  | { type: 'task', task: TaskItem, depth: number };
 
 export function MainContent({ currentView, onOpenNewTask, onOpenZenMode }: MainContentProps) {
   const [collapsed, setCollapsed] = useState<Record<string, boolean>>({});
@@ -42,7 +42,7 @@ export function MainContent({ currentView, onOpenNewTask, onOpenZenMode }: MainC
     if (currentCycle && currentCycle.daysValue === 1 && smartTasks.length > 0) {
       flat.push({ type: 'header', title: 'Up Next (Priorizado)', category: 'smart', color: '#0a84ff' });
       if (!collapsed['smart']) {
-        smartTasks.slice(0, 2).forEach(task => flat.push({ type: 'task', task }));
+        smartTasks.slice(0, 2).forEach(task => flat.push({ type: 'task', task, depth: 0 }));
       }
     }
 
@@ -51,7 +51,13 @@ export function MainContent({ currentView, onOpenNewTask, onOpenZenMode }: MainC
       const color = category === 'limpieza' ? '#ff9500' : category === 'skincare' ? '#af52de' : '#34c759';
       flat.push({ type: 'header', title: category, category, color });
       if (!collapsed[category]) {
-        tasks.forEach(task => flat.push({ type: 'task', task }));
+        const roots = tasks.filter(t => !t.parentId);
+        const processNode = (task: TaskItem, depth: number) => {
+          flat.push({ type: 'task', task, depth });
+          const children = tasks.filter(t => t.parentId === task.id);
+          children.forEach(c => processNode(c, depth + 1));
+        };
+        roots.forEach(r => processNode(r, 0));
       }
     });
 
@@ -71,11 +77,14 @@ export function MainContent({ currentView, onOpenNewTask, onOpenZenMode }: MainC
     overscan: 5,
   });
 
-  const renderTask = (task: TaskItem, virtualStyle: React.CSSProperties, index: number) => (
+  const renderTask = (task: TaskItem, virtualStyle: React.CSSProperties, index: number, depth: number) => (
     <TaskCard 
       key={task.id}
       task={task}
-      virtualStyle={virtualStyle}
+      virtualStyle={{
+        ...virtualStyle,
+        paddingLeft: `calc(${depth * 32}px)`
+      }}
       onComplete={completeTask}
       onDelete={deleteTask}
       onOpenZenMode={onOpenZenMode}
@@ -126,7 +135,7 @@ export function MainContent({ currentView, onOpenNewTask, onOpenZenMode }: MainC
               </div>
             );
           } else {
-            return renderTask(data.task, virtualStyle, virtualItem.index);
+            return renderTask(data.task, virtualStyle, virtualItem.index, data.depth);
           }
         })}
 

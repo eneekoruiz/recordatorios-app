@@ -29,6 +29,8 @@ interface AppState {
   importData: (jsonData: string) => void;
   parsePlainTextTasks: (text: string) => void;
   addDependency: (targetTaskId: string, blockedByTaskId: string) => void;
+  removeDependency: (targetTaskId: string, blockedByTaskId: string) => void;
+  nestTask: (taskId: string, parentId: string | undefined) => void;
 }
 
 export const useAppStore = create<AppState>()(
@@ -236,6 +238,42 @@ export const useAppStore = create<AppState>()(
           };
         }
         return state;
+      }),
+
+      removeDependency: (targetTaskId: string, blockedByTaskId: string) => set((state) => {
+        const targetTask = state.tasks[targetTaskId];
+        if (!targetTask) return state;
+        
+        return {
+          tasks: {
+            ...state.tasks,
+            [targetTaskId]: {
+              ...targetTask,
+              blockedBy: targetTask.blockedBy.filter(id => id !== blockedByTaskId),
+              is_dirty: true,
+              updated_at: Date.now()
+            }
+          }
+        };
+      }),
+
+      nestTask: (taskId: string, parentId: string | undefined) => set((state) => {
+        if (taskId === parentId) return state; // Evitar auto-anidación circular básica
+        
+        const task = state.tasks[taskId];
+        if (!task) return state;
+
+        return {
+          tasks: {
+            ...state.tasks,
+            [taskId]: {
+              ...task,
+              parentId: parentId,
+              is_dirty: true,
+              updated_at: Date.now()
+            }
+          }
+        };
       })
     }),
     {
