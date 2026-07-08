@@ -30,13 +30,17 @@ const SMART_COLORS: Record<string, string> = {
 export function MainContent({ currentView, onOpenNewTask, onOpenZenMode, onBackToSidebar, isMobile }: MainContentProps) {
   const [collapsed, setCollapsed] = useState<Record<string, boolean>>({});
   
-  const { getTasksByCycle, getTasksByList, getSmartSortTasks, completeTask, deleteTask, cycles, lists, addListSection, updateListSection, updateTaskSection, listSections, tasks } = useAppStore();
+  const { getTasksByCycle, getTasksByList, getSmartSortTasks, completeTask, deleteTask, cycles, updateCycle, deleteCycle, lists, addListSection, updateListSection, updateTaskSection, listSections, tasks } = useAppStore();
 
   const currentCycle = useMemo(() => cycles.find(c => c.id === currentView), [cycles, currentView]);
   const currentList = useMemo(() => lists?.find(l => `list_${l.id}` === currentView), [lists, currentView]);
   
   const isListView = currentView.startsWith('list_');
   const isSmartView = currentView.startsWith('smart_');
+
+  // Estados para la edición de ciclos in-place
+  const [isEditingCycle, setIsEditingCycle] = useState(false);
+  const [cycleEditName, setCycleEditName] = useState('');
 
   // Funciones auxiliares para Smart Lists (memoized)
   const getTasksForSmartView = useCallback((includeCompleted = false) => {
@@ -244,14 +248,63 @@ export function MainContent({ currentView, onOpenNewTask, onOpenZenMode, onBackT
           )}
           <h1 className="text-display" style={{ 
             fontSize: '2.5rem', 
-            color: isSmartView ? SMART_COLORS[currentView] : isListView && currentList ? currentList.color : 'var(--text-primary)'
+            color: isSmartView ? SMART_COLORS[currentView] : isListView && currentList ? currentList.color : 'var(--text-primary)',
+            display: 'flex', alignItems: 'center'
           }}>
             {CycleIcon && <CycleIcon size={32} color="var(--accent-primary)" style={{ marginRight: 12 }} />}
-            {getTitle()}
+            
+            {isEditingCycle && currentCycle ? (
+              <input 
+                type="text" 
+                value={cycleEditName}
+                onChange={e => setCycleEditName(e.target.value)}
+                onBlur={() => {
+                  if (cycleEditName.trim()) {
+                    updateCycle(currentCycle.id, { name: cycleEditName.trim() });
+                  }
+                  setIsEditingCycle(false);
+                }}
+                onKeyDown={e => {
+                  if (e.key === 'Enter') e.currentTarget.blur();
+                }}
+                autoFocus
+                style={{ background: 'transparent', border: 'none', borderBottom: '2px solid var(--accent-primary)', color: 'inherit', fontSize: 'inherit', fontFamily: 'inherit', outline: 'none', width: 'auto' }}
+              />
+            ) : (
+              <span 
+                onDoubleClick={() => {
+                  if (currentCycle) {
+                    setCycleEditName(currentCycle.name);
+                    setIsEditingCycle(true);
+                  }
+                }}
+                style={{ cursor: currentCycle ? 'text' : 'default' }}
+                title={currentCycle ? "Doble click para editar nombre" : undefined}
+              >
+                {getTitle()}
+              </span>
+            )}
           </h1>
-          <p className="text-secondary" style={{ marginTop: 'var(--space-8)' }}>
-            {new Date().toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' })}
-          </p>
+          
+          <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-12)', marginTop: 'var(--space-8)' }}>
+            <p className="text-secondary" style={{ margin: 0 }}>
+              {new Date().toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' })}
+            </p>
+            {currentCycle && !['cycle_day', 'cycle_week', 'cycle_month', 'cycle_year'].includes(currentCycle.id) && (
+              <button 
+                onClick={async () => {
+                  const confirmDelete = confirm(`¿Estás seguro de eliminar el ciclo ${currentCycle.name}?`);
+                  if (confirmDelete) {
+                    deleteCycle(currentCycle.id);
+                  }
+                }}
+                className="time-pill"
+                style={{ cursor: 'pointer', background: 'rgba(255, 69, 58, 0.1)', color: 'var(--accent-red)', border: 'none' }}
+              >
+                Eliminar Ciclo
+              </button>
+            )}
+          </div>
           {totalCost > 0 && (
             <div style={{ marginTop: 12, display: 'inline-block', background: 'var(--accent-glow)', color: 'var(--accent-primary)', padding: '6px 12px', borderRadius: 8, fontWeight: 600 }}>
               Total Estimado: ${totalCost.toFixed(2)}

@@ -4,24 +4,22 @@ import { MainContent } from './components/layout/MainContent';
 import { WidgetDashboard } from './components/layout/WidgetDashboard';
 import { AnalyticsView } from './components/analytics/AnalyticsView';
 import { TaskDrawer } from './components/tasks/TaskDrawer';
-import { CycleModal } from './components/layout/CycleModal';
-import { DataModal } from './components/layout/DataModal';
-import { BrainDumpModal } from './components/layout/BrainDumpModal';
 import { PromptModal } from './components/layout/PromptModal';
+import { UniversalImporter } from './components/views/UniversalImporter';
 import { SyncProvider } from './sync/SyncProvider';
 import { CommandPalette } from './components/layout/CommandPalette';
 import { ZenMode } from './components/tasks/ZenMode';
 import { GeolocationService } from './services/GeolocationService';
 import { useAppStore } from './store/useAppStore';
+import { useNavigation } from './hooks/useNavigation';
+import { NavigationFrame } from './components/layout/NavigationFrame';
 
 function App() {
-  const [currentView, setCurrentView] = useState('cycle_day'); // 'cycle_day', 'cycle_week', 'ANALYTICS', etc.
+  const { push, currentView: getNavView } = useNavigation();
+  const [currentView, setCurrentView] = useState('cycle_day'); // Sidebar selection
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
   const [mobileView, setMobileView] = useState<'sidebar' | 'content'>('sidebar');
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
-  const [isCycleModalOpen, setIsCycleModalOpen] = useState(false);
-  const [isDataModalOpen, setIsDataModalOpen] = useState(false);
-  const [isBrainDumpOpen, setIsBrainDumpOpen] = useState(false);
   const [zenModeTaskId, setZenModeTaskId] = useState<string | null>(null);
 
   useEffect(() => {
@@ -46,10 +44,13 @@ function App() {
   }, []);
 
   const handleSelectView = (view: string) => {
-    if (view === 'MANAGE_CYCLES') setIsCycleModalOpen(true);
-    else if (view === 'DATA') setIsDataModalOpen(true);
-    else if (view === 'BRAIN_DUMP') setIsBrainDumpOpen(true);
-    else {
+    if (view === 'DATA' || view === 'BRAIN_DUMP') {
+      push('UNIVERSAL_IMPORTER');
+    } else if (view === 'ANALYTICS') {
+      push('ANALYTICS');
+    } else if (view === 'MANAGE_CYCLES') {
+      // Ignorado, ahora se hace inline
+    } else {
       setCurrentView(view);
       if (isMobile) setMobileView('content');
     }
@@ -105,36 +106,31 @@ function App() {
         />
       </div>
       
-      <div className="main-container">
-        {currentView === 'ANALYTICS' ? (
-          <AnalyticsView />
-        ) : (
-          <MainContent 
-            currentView={currentView}
-            onOpenNewTask={() => setIsDrawerOpen(true)}
-            onOpenZenMode={(taskId) => setZenModeTaskId(taskId)}
-            onBackToSidebar={() => setMobileView('sidebar')}
-            isMobile={isMobile}
-          />
+      <NavigationFrame>
+        {getNavView() === 'HOME' && (
+          <div className="main-container">
+            <MainContent 
+              currentView={currentView}
+              onOpenNewTask={() => setIsDrawerOpen(true)}
+              onOpenZenMode={(taskId) => setZenModeTaskId(taskId)}
+              onBackToSidebar={() => setMobileView('sidebar')}
+              isMobile={isMobile}
+            />
+          </div>
         )}
-      </div>
+        {getNavView() === 'UNIVERSAL_IMPORTER' && (
+          <UniversalImporter />
+        )}
+        {getNavView() === 'ANALYTICS' && (
+          <AnalyticsView />
+        )}
+      </NavigationFrame>
       <TaskDrawer 
         isOpen={isDrawerOpen} 
         onClose={() => setIsDrawerOpen(false)} 
         defaultCategoryId={currentView.startsWith('list_') ? currentView.replace('list_', '') : undefined}
       />
-      <CycleModal 
-        isOpen={isCycleModalOpen}
-        onClose={() => setIsCycleModalOpen(false)}
-      />
-      <DataModal 
-        isOpen={isDataModalOpen}
-        onClose={() => setIsDataModalOpen(false)}
-      />
-      <BrainDumpModal 
-        isOpen={isBrainDumpOpen}
-        onClose={() => setIsBrainDumpOpen(false)}
-      />
+      {/* Removidos los viejos Modals (Cycle, Data, BrainDump) */}
       <PromptModal />
       {zenModeTaskId && (
         <ZenMode 
@@ -144,10 +140,8 @@ function App() {
       )}
       <CommandPalette 
         onSelectView={(view) => {
-          if (view === 'MANAGE_CYCLES') setIsCycleModalOpen(true);
-          else if (view === 'DATA') setIsDataModalOpen(true);
-          else if (view === 'BRAIN_DUMP') setIsBrainDumpOpen(true);
-
+          if (view === 'DATA' || view === 'BRAIN_DUMP') push('UNIVERSAL_IMPORTER');
+          else if (view === 'ANALYTICS') push('ANALYTICS');
           else setCurrentView(view);
         }}
         onOpenZenMode={(taskId) => setZenModeTaskId(taskId)}
