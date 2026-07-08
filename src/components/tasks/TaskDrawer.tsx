@@ -166,7 +166,7 @@ export function TaskDrawer({ isOpen, onClose }: TaskDrawerProps) {
                         onClick={() => setCycleId(cycle.id)}
                         type="button"
                       >
-                        {cycle.emoji} {cycle.name}
+                        {cycle.name}
                       </button>
                     ))}
                   </div>

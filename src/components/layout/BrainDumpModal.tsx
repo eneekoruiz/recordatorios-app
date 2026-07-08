@@ -62,7 +62,7 @@ export function BrainDumpModal({ isOpen, onClose }: BrainDumpModalProps) {
               name: rawCycle,
               daysValue: 14,
               isPinned: true,
-              emoji: '✨'
+              icon: 'sparkles'
             });
             cycleId = newCycleId;
           }

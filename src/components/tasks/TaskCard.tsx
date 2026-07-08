@@ -141,8 +141,8 @@ export function TaskCard({ task, virtualStyle, onComplete, onDelete, onOpenZenMo
               {task.alerts.map((time: string, idx: number) => (
                 <span key={idx} className="time-pill">{time}</span>
               ))}
-              <span className="text-muted" style={{ fontSize: '0.8rem' }}>
-                {taskCycle ? `${taskCycle.emoji} ${taskCycle.name}` : 'Personalizado'}
+              <span className="text-muted" style={{ fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: 4 }}>
+                {taskCycle ? taskCycle.name : 'Personalizado'}
               </span>
             </div>
           </div>

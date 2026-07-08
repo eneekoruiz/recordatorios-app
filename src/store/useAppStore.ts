@@ -3,11 +3,11 @@ import { persist, createJSONStorage } from 'zustand/middleware';
 import type { TaskItem, CustomCycle } from '../models/Task';
 import { TaskRepository } from '../repositories/TaskRepository';
 
-const DEFAULT_CYCLES: CustomCycle[] = [
-  { id: 'cycle_day', name: 'Mi Día', daysValue: 1, isPinned: true, emoji: '🌅' },
-  { id: 'cycle_week', name: 'Mi Semana', daysValue: 7, isPinned: true, emoji: '📅' },
-  { id: 'cycle_month', name: 'Mi Mes', daysValue: 30, isPinned: true, emoji: '🌙' },
-  { id: 'cycle_year', name: 'Mi Año', daysValue: 365, isPinned: false, emoji: '🌍' }
+const INITIAL_CYCLES: CustomCycle[] = [
+  { id: 'cycle_day', name: 'Mi Día', daysValue: 1, isPinned: true, icon: 'sun' },
+  { id: 'cycle_week', name: 'Mi Semana', daysValue: 7, isPinned: true, icon: 'calendar' },
+  { id: 'cycle_month', name: 'Mi Mes', daysValue: 30, isPinned: true, icon: 'moon' },
+  { id: 'cycle_year', name: 'Mi Año', daysValue: 365, isPinned: true, icon: 'globe' },
 ];
 
 interface AppState {
@@ -37,7 +37,7 @@ export const useAppStore = create<AppState>()(
   persist(
     (set, get) => ({
       tasks: {},
-      cycles: DEFAULT_CYCLES,
+      cycles: INITIAL_CYCLES,
 
       addTask: (payload) => set((state) => {
         const newTask = TaskRepository.create(payload);
@@ -149,7 +149,7 @@ export const useAppStore = create<AppState>()(
 
       exportData: () => {
         const { tasks, cycles } = get();
-        const data = { tasks, cycles, version: 2, exportedAt: new Date().toISOString() };
+        const data = { tasks, cycles, version: 3, exportedAt: new Date().toISOString() };
         return JSON.stringify(data, null, 2);
       },
 
@@ -201,7 +201,7 @@ export const useAppStore = create<AppState>()(
                 name: rawCycle,
                 daysValue: 14, // Heurística genérica
                 isPinned: true,
-                emoji: '✨'
+                icon: 'sparkles'
               });
               cycleId = newCycleId;
             }
@@ -279,30 +279,48 @@ export const useAppStore = create<AppState>()(
     {
       name: 'reminders-storage',
       storage: createJSONStorage(() => localStorage),
-      // Migración dinámica
-      version: 2,
+      version: 3,
       migrate: (persistedState: any, version: number) => {
+        let state = persistedState;
+        
         if (version === 0 || version === 1) {
-          // Migrar frequencyLevel a cycleId
-          const state = persistedState as any;
+          // Migración v1 -> v2: Transform frequencies to cycles
+          const newTasks: Record<string, TaskItem> = {};
           if (state.tasks) {
-            Object.values(state.tasks).forEach((t: any) => {
-              if (t.frequencyLevel !== undefined) {
-                if (t.frequencyLevel === 1) t.cycleId = 'cycle_day';
-                else if (t.frequencyLevel === 2) t.cycleId = 'cycle_week';
-                else if (t.frequencyLevel === 3) t.cycleId = 'cycle_month';
-                else t.cycleId = 'cycle_day';
-                delete t.frequencyLevel;
-              }
-              if (!t.blockedBy) {
-                t.blockedBy = [];
-              }
+            Object.entries(state.tasks).forEach(([id, t]: [string, any]) => {
+              let cycleId = 'cycle_day';
+              if (t.frequencyLevel === 'weekly') cycleId = 'cycle_week';
+              if (t.frequencyLevel === 'monthly') cycleId = 'cycle_month';
+              if (t.frequencyLevel === 'yearly') cycleId = 'cycle_year';
+              
+              const migratedTask: any = {
+                ...t,
+                cycleId,
+                blockedBy: t.blockedBy || []
+              };
+              delete migratedTask.frequencyLevel;
+              newTasks[id] = migratedTask;
             });
           }
-          state.cycles = DEFAULT_CYCLES;
-          return state;
+          state = { ...state, tasks: newTasks, cycles: INITIAL_CYCLES };
         }
-        return persistedState;
+
+        if (version < 3) {
+          // Migración v2 -> v3: Emoji to Icon
+          const migratedCycles = (state.cycles || INITIAL_CYCLES).map((c: any) => {
+            const iconMap: Record<string, string> = {
+              '🌅': 'sun', '📅': 'calendar', '🌙': 'moon', '🌍': 'globe',
+              '🚀': 'rocket', '🔥': 'flame', '✨': 'sparkles', '🌟': 'star'
+            };
+            return {
+              ...c,
+              icon: c.icon || iconMap[c.emoji] || 'circle'
+            };
+          });
+          state = { ...state, cycles: migratedCycles };
+        }
+        
+        return state as AppState;
       },
     }
   )

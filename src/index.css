@@ -20,7 +20,7 @@
   --text-secondary: #a1a1aa;
   --text-tertiary: #52525b;
 
-  --border-subtle: #27272a;
+  --border-subtle: rgba(255, 255, 255, 0.08);
   --border-focus: rgba(255, 255, 255, 0.15);
 
   /* Spacing Scale (Mathematical) */
@@ -46,9 +46,9 @@
   --font-display: 'Outfit', 'Inter', system-ui, sans-serif;
 
   /* Shadows & Depth */
-  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.4);
-  --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.5);
-  --shadow-glow: 0 0 20px var(--accent-glow);
+  --shadow-sm: none;
+  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.3);
+  --shadow-glow: 0 0 15px var(--accent-glow);
 }
 
 /* ========================================================
@@ -134,16 +134,16 @@ body {
 }
 
 .surface-card {
-  background: var(--bg-surface);
+  background: transparent;
   border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-sm);
-  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+  border-radius: var(--radius-md);
+  box-shadow: none;
+  transition: all 0.2s cubic-bezier(0.2, 0, 0, 1);
 }
 
 .surface-card:hover {
+  background: rgba(255, 255, 255, 0.02);
   border-color: var(--border-focus);
-  box-shadow: var(--shadow-md);
 }
 
 /* ========================================================

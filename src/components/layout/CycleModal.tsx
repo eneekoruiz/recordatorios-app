@@ -1,8 +1,13 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Trash2, Plus } from 'lucide-react';
+import { X, Trash2, Plus, Sun, Calendar, Moon, Globe, Rocket, Flame, Sparkles, Star, Circle } from 'lucide-react';
 import { useAppStore } from '../../store/useAppStore';
 import type { CustomCycle } from '../../models/Task';
+
+const IconMap: Record<string, any> = {
+  'sun': Sun, 'calendar': Calendar, 'moon': Moon, 'globe': Globe,
+  'rocket': Rocket, 'flame': Flame, 'sparkles': Sparkles, 'star': Star, 'circle': Circle
+};
 
 interface CycleModalProps {
   isOpen: boolean;
@@ -14,7 +19,7 @@ export function CycleModal({ isOpen, onClose }: CycleModalProps) {
   
   const [newCycleName, setNewCycleName] = useState('');
   const [newCycleDays, setNewCycleDays] = useState(14);
-  const [newCycleEmoji, setNewCycleEmoji] = useState('✨');
+  const [newCycleIcon, setNewCycleIcon] = useState('circle');
 
   const handleCreate = () => {
     if (!newCycleName) return;
@@ -23,7 +28,7 @@ export function CycleModal({ isOpen, onClose }: CycleModalProps) {
       name: newCycleName,
       daysValue: newCycleDays,
       isPinned: true,
-      emoji: newCycleEmoji
+      icon: newCycleIcon
     };
     addCycle(newCycle);
     setNewCycleName('');
@@ -68,10 +73,12 @@ export function CycleModal({ isOpen, onClose }: CycleModalProps) {
 
             {/* Lista de Ciclos Existentes */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-12)', marginBottom: 'var(--space-32)' }}>
-              {cycles.map(cycle => (
+              {cycles.map(cycle => {
+                const CycleIcon = IconMap[cycle.icon] || Circle;
+                return (
                 <div key={cycle.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: 'var(--space-12)', background: 'var(--border-subtle)', borderRadius: 'var(--radius-md)' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-12)' }}>
-                    <span style={{ fontSize: '1.25rem' }}>{cycle.emoji}</span>
+                    <CycleIcon size={24} color="var(--accent-primary)" />
                     <div>
                       <div className="text-body" style={{ fontWeight: 500 }}>{cycle.name}</div>
                       <div className="text-muted" style={{ fontSize: '0.8rem' }}>{cycle.daysValue} días</div>
@@ -91,7 +98,7 @@ export function CycleModal({ isOpen, onClose }: CycleModalProps) {
                     )}
                   </div>
                 </div>
-              ))}
+              )})}
             </div>
 
             {/* Crear Nuevo Ciclo */}
@@ -99,11 +106,13 @@ export function CycleModal({ isOpen, onClose }: CycleModalProps) {
               <h3 className="text-body" style={{ fontWeight: 600, marginBottom: 'var(--space-16)' }}>Crear Nuevo Ciclo</h3>
               
               <div style={{ display: 'flex', gap: 'var(--space-12)', marginBottom: 'var(--space-16)' }}>
-                <input 
-                  value={newCycleEmoji}
-                  onChange={(e) => setNewCycleEmoji(e.target.value)}
-                  style={{ width: '50px', textAlign: 'center', background: 'var(--bg-base)', border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-sm)', color: 'white' }}
-                />
+                <select 
+                  value={newCycleIcon}
+                  onChange={(e) => setNewCycleIcon(e.target.value)}
+                  style={{ width: '60px', textAlign: 'center', background: 'var(--bg-base)', border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-sm)', color: 'white', cursor: 'pointer' }}
+                >
+                  {Object.keys(IconMap).map(key => <option key={key} value={key}>{key}</option>)}
+                </select>
                 <input 
                   placeholder="Nombre (ej. Mi Quincena)"
                   value={newCycleName}

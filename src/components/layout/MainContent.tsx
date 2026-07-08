@@ -1,5 +1,5 @@
 import { useState, useRef, useMemo } from 'react';
-import { Plus, ChevronDown, Sparkles } from 'lucide-react';
+import { Plus, ChevronDown, Sparkles, Sun, Calendar, Moon, Globe, Rocket, Flame, Star, Circle } from 'lucide-react';
 import { useVirtualizer } from '@tanstack/react-virtual';
 import { useAppStore } from '../../store/useAppStore';
 import type { TaskItem } from '../../models/Task';
@@ -92,11 +92,17 @@ export function MainContent({ currentView, onOpenNewTask, onOpenZenMode }: MainC
     />
   );
 
+  const IconMap: Record<string, any> = {
+    'sun': Sun, 'calendar': Calendar, 'moon': Moon, 'globe': Globe,
+    'rocket': Rocket, 'flame': Flame, 'sparkles': Sparkles, 'star': Star, 'circle': Circle
+  };
+  const CycleIcon = currentCycle ? (IconMap[currentCycle.icon] || Circle) : null;
+
   return (
     <main className="main-content" ref={parentRef} style={{ overflowY: 'auto' }}>
       <header className="content-header">
-        <h1 className="text-display" style={{ color: 'var(--accent-primary)', marginBottom: 0, display: 'flex', alignItems: 'center', gap: 'var(--space-12)' }}>
-          {currentCycle?.emoji} {getTitle()}
+        <h1 className="text-display" style={{ color: 'var(--text-primary)', marginBottom: 0, display: 'flex', alignItems: 'center', gap: 'var(--space-12)' }}>
+          {CycleIcon && <CycleIcon size={32} color="var(--accent-primary)" />} {getTitle()}
         </h1>
         <div className="header-actions">
           <button className="icon-btn" onClick={onOpenNewTask}><Plus size={24} /></button>

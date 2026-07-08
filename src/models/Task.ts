@@ -3,7 +3,7 @@ export interface CustomCycle {
   name: string;
   daysValue: number; // Duración en días para la cascada matemática
   isPinned: boolean;
-  emoji: string;
+  icon: string; // Nombre del icono de Lucide (ej. 'sun', 'calendar')
 }
 
 export interface TaskItem {

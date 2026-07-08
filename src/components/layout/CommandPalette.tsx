@@ -70,7 +70,7 @@ export function CommandPalette({ onSelectView, onOpenZenMode }: CommandPalettePr
   // 2. Cycles Navigation
   cycles.forEach(c => {
     if (c.name.toLowerCase().includes(q)) {
-      results.push({ type: 'cycle', id: c.id, title: `Ir a ${c.name}`, icon: <span style={{ fontSize: '14px' }}>{c.emoji}</span> });
+      results.push({ type: 'cycle', id: c.id, title: `Ir a ${c.name}`, icon: <Search size={14} color="var(--text-tertiary)" /> });
     }
   });
 

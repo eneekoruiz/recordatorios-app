@@ -1,4 +1,5 @@
-import { Plus, BarChart2, Settings, DownloadCloud, Zap } from 'lucide-react';
+import { useState } from 'react';
+import { Plus, BarChart2, Settings, DownloadCloud, Zap, ChevronDown, ChevronRight, Sun, Calendar, Moon, Globe, Rocket, Flame, Sparkles, Star, Circle, Clock } from 'lucide-react';
 import { useAppStore } from '../../store/useAppStore';
 import './Layout.css';
 
@@ -9,6 +10,12 @@ interface SidebarProps {
 
 export function Sidebar({ currentView, onSelectView }: SidebarProps) {
   const cycles = useAppStore(state => state.cycles);
+  const [isCyclesOpen, setIsCyclesOpen] = useState(false);
+
+  const IconMap: Record<string, any> = {
+    'sun': Sun, 'calendar': Calendar, 'moon': Moon, 'globe': Globe,
+    'rocket': Rocket, 'flame': Flame, 'sparkles': Sparkles, 'star': Star, 'circle': Circle
+  };
   
   return (
     <aside className="sidebar">
@@ -25,16 +32,34 @@ export function Sidebar({ currentView, onSelectView }: SidebarProps) {
       </div>
 
       <div className="smart-lists-nav">
-        {cycles.filter(c => c.isPinned).map(cycle => (
-          <div 
-            key={cycle.id}
-            className={`nav-item ${currentView === cycle.id ? 'active' : ''}`}
-            onClick={() => onSelectView(cycle.id)}
-          >
-            <span style={{ fontSize: '1.2rem' }}>{cycle.emoji}</span>
-            <span>{cycle.name}</span>
+        
+        {/* Acordeón de Ciclos */}
+        <div className="section-header" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer', padding: 'var(--space-8) var(--space-12)' }} onClick={() => setIsCyclesOpen(!isCyclesOpen)}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, color: 'var(--text-secondary)' }}>
+            <Clock size={16} />
+            <span style={{ fontSize: '0.85rem', letterSpacing: '0.5px' }}>VISTAS TEMPORALES</span>
           </div>
-        ))}
+          {isCyclesOpen ? <ChevronDown size={16} color="var(--text-tertiary)" /> : <ChevronRight size={16} color="var(--text-tertiary)" />}
+        </div>
+
+        {isCyclesOpen && (
+          <div style={{ paddingLeft: 'var(--space-12)', display: 'flex', flexDirection: 'column', gap: 'var(--space-4)', marginBottom: 'var(--space-12)' }}>
+            {cycles.filter(c => c.isPinned).map(cycle => {
+              const Icon = IconMap[cycle.icon] || Circle;
+              return (
+                <div 
+                  key={cycle.id}
+                  className={`nav-item ${currentView === cycle.id ? 'active' : ''}`}
+                  onClick={() => onSelectView(cycle.id)}
+                  style={{ padding: 'var(--space-8) var(--space-12)', fontSize: '0.9rem', color: currentView === cycle.id ? 'white' : 'var(--text-secondary)' }}
+                >
+                  <Icon size={16} color={currentView === cycle.id ? 'white' : 'var(--text-tertiary)'} />
+                  <span>{cycle.name}</span>
+                </div>
+              );
+            })}
+          </div>
+        )}
 
         <div 
           className={`nav-item ${currentView === 'ANALYTICS' ? 'active' : ''}`}
