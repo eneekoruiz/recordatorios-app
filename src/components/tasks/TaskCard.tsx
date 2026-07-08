@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { CheckCircle, Trash2, Lock, Play, GripVertical, Link2 } from 'lucide-react';
+import { CheckCircle, Trash2, GripVertical, Play, Lock, Link2, Flag, MapPin, Link, Image as ImageIcon } from 'lucide-react';
 import { useState } from 'react';
 import type { TaskItem } from '../../models/Task';
 import { useAppStore } from '../../store/useAppStore';
@@ -134,9 +134,18 @@ export function TaskCard({ task, virtualStyle, onComplete, onDelete, onOpenZenMo
           <div>
             <div style={{ fontSize: '1.1rem', fontWeight: 500, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: 'var(--space-8)' }}>
               {isBlocked && <Lock size={16} color="var(--accent-red)" />}
+              {task.priority && task.priority !== 'none' && (
+                <span style={{ color: 'var(--accent-red)', fontWeight: 'bold' }}>
+                  {task.priority === 'low' ? '!' : task.priority === 'medium' ? '!!' : '!!!'}
+                </span>
+              )}
               <span style={{ textDecoration: task.status === 'COMPLETED' ? 'line-through' : 'none' }}>
                 {task.title}
               </span>
+              {task.flagged && <Flag size={14} color="var(--accent-orange)" fill="var(--accent-orange)" />}
+              {task.url && <Link size={14} color="var(--text-tertiary)" />}
+              {task.locationName && <MapPin size={14} color="var(--accent-blue)" />}
+              {task.image && <ImageIcon size={14} color="var(--text-tertiary)" />}
             </div>
             <div style={{ display: 'flex', gap: 'var(--space-8)', marginTop: 'var(--space-4)', alignItems: 'center' }}>
               {task.alerts.map((time: string, idx: number) => (

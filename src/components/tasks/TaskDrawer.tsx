@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { X, Clock, Mic, MicOff, Settings2, Calendar as CalendarIcon, Repeat, Link2, PlusCircle } from 'lucide-react';
+import { X, Clock, Mic, MicOff, Settings2, Calendar as CalendarIcon, Repeat, Link2, PlusCircle, Flag, MapPin, Link, Image as ImageIcon } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAppStore } from '../../store/useAppStore';
 import { parseNaturalLanguage } from '../../utils/nlp';
@@ -27,6 +27,11 @@ export function TaskDrawer({ isOpen, onClose, defaultCategoryId }: TaskDrawerPro
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [hasDate, setHasDate] = useState(false);
   const [hasTime, setHasTime] = useState(false);
+  const [url, setUrl] = useState('');
+  const [flagged, setFlagged] = useState(false);
+  const [priority, setPriority] = useState<'none' | 'low' | 'medium' | 'high'>('none');
+  const [locationName, setLocationName] = useState('');
+  const [image, setImage] = useState('');
 
   // Suggested chips purely for visual feedback
   const [suggestedChips, setSuggestedChips] = useState<{type: 'time'|'date'|'cycle', label: string}[]>([]);
@@ -97,7 +102,12 @@ export function TaskDrawer({ isOpen, onClose, defaultCategoryId }: TaskDrawerPro
       blockedBy: finalBlockedBy,
       dueDate,
       alerts,
-      sectionId
+      sectionId,
+      url: url || undefined,
+      flagged: flagged || undefined,
+      priority: priority !== 'none' ? priority : undefined,
+      locationName: locationName || undefined,
+      image: image || undefined
     });
     
     // Reset y cerrar
@@ -111,6 +121,11 @@ export function TaskDrawer({ isOpen, onClose, defaultCategoryId }: TaskDrawerPro
     setShowAdvanced(false);
     setHasDate(false);
     setHasTime(false);
+    setUrl('');
+    setFlagged(false);
+    setPriority('none');
+    setLocationName('');
+    setImage('');
     onClose();
   };
 
@@ -415,6 +430,106 @@ export function TaskDrawer({ isOpen, onClose, defaultCategoryId }: TaskDrawerPro
                           ))}
                         </select>
                       </div>
+
+                      <div className="divider"></div>
+
+                      <div className="detail-row" style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                          <Flag size={18} color="var(--accent-orange)" />
+                          <span className="detail-label" style={{ marginBottom: 0 }}>Destacado</span>
+                        </div>
+                        <label className="switch">
+                          <input type="checkbox" checked={flagged} onChange={e => setFlagged(e.target.checked)} />
+                          <span className="slider round"></span>
+                        </label>
+                      </div>
+
+                      <div className="divider"></div>
+
+                      <div className="detail-row" style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                          <span style={{ color: 'var(--accent-red)', fontWeight: 'bold', fontSize: '18px', width: 18, textAlign: 'center' }}>!!!</span>
+                          <span className="detail-label" style={{ marginBottom: 0 }}>Prioridad</span>
+                        </div>
+                        <select 
+                          className="detail-select"
+                          value={priority}
+                          onChange={e => setPriority(e.target.value as any)}
+                          style={{ width: 'auto', textAlign: 'right', border: 'none', background: 'transparent' }}
+                        >
+                          <option value="none">Ninguna</option>
+                          <option value="low">Baja (!)</option>
+                          <option value="medium">Media (!!)</option>
+                          <option value="high">Alta (!!!)</option>
+                        </select>
+                      </div>
+
+                      <div className="divider"></div>
+                      
+                      <div className="detail-row" style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                          <MapPin size={18} color="var(--accent-blue)" />
+                          <span className="detail-label" style={{ marginBottom: 0 }}>Ubicación</span>
+                        </div>
+                        <label className="switch">
+                          <input type="checkbox" checked={!!locationName} onChange={e => setLocationName(e.target.checked ? 'Dirección actual' : '')} />
+                          <span className="slider round"></span>
+                        </label>
+                      </div>
+                      {!!locationName && (
+                        <div className="detail-row" style={{ marginTop: -8 }}>
+                          <input 
+                            type="text" 
+                            className="detail-select" 
+                            placeholder="Buscar dirección o usar actual..."
+                            value={locationName === 'Dirección actual' ? '' : locationName}
+                            onChange={e => setLocationName(e.target.value)}
+                          />
+                        </div>
+                      )}
+
+                      <div className="divider"></div>
+
+                      <div className="detail-row" style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                          <Link size={18} color="var(--text-tertiary)" />
+                          <span className="detail-label" style={{ marginBottom: 0 }}>URL</span>
+                        </div>
+                      </div>
+                      <div className="detail-row" style={{ marginTop: -12 }}>
+                        <input 
+                          type="url" 
+                          className="detail-select" 
+                          placeholder="https://..."
+                          value={url}
+                          onChange={e => setUrl(e.target.value)}
+                        />
+                      </div>
+
+                      <div className="divider"></div>
+
+                      <div className="detail-row" style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                          <ImageIcon size={18} color="var(--text-tertiary)" />
+                          <span className="detail-label" style={{ marginBottom: 0 }}>Imagen</span>
+                        </div>
+                        <label className="switch">
+                          <input type="checkbox" checked={!!image} onChange={e => setImage(e.target.checked ? 'https://picsum.photos/200/300' : '')} />
+                          <span className="slider round"></span>
+                        </label>
+                      </div>
+                      {!!image && (
+                        <div className="detail-row" style={{ marginTop: -8 }}>
+                          <input 
+                            type="url" 
+                            className="detail-select" 
+                            placeholder="URL de imagen..."
+                            value={image === 'https://picsum.photos/200/300' ? '' : image}
+                            onChange={e => setImage(e.target.value)}
+                          />
+                        </div>
+                      )}
+
                     </div>
                   </motion.div>
                 )}

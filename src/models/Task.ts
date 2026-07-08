@@ -42,9 +42,16 @@ export interface TaskItem {
   alerts: string[]; 
   createdAt: number; 
 
+  // --- APPLE REMINDERS FEATURES ---
+  priority?: 'none' | 'low' | 'medium' | 'high';
+  flagged?: boolean;
+  url?: string;
+  image?: string; // base64 o URL de imagen adjunta
+
   // --- INNOVATION FIELDS ---
   /** Coordenadas de Geofencing para disparar notificaciones basadas en ubicación */
   location?: { lat: number; lng: number; radius: number; address: string };
+  locationName?: string; // Nombre amigable para UI
 
   // --- SYNC-READY FIELDS (Cloud Architect) ---
   updated_at: number; 
