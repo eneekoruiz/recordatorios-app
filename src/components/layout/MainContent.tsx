@@ -1,5 +1,5 @@
 import { useState, useRef, useMemo } from 'react';
-import { Plus, ChevronDown, Sparkles, Sun, Calendar, Moon, Globe, Rocket, Flame, Star, Circle, FolderPlus, Edit2, Check } from 'lucide-react';
+import { Plus, ChevronDown, Sparkles, Sun, Calendar, Moon, Globe, Rocket, Flame, Star, Circle, FolderPlus } from 'lucide-react';
 import { useVirtualizer } from '@tanstack/react-virtual';
 import { useAppStore } from '../../store/useAppStore';
 import type { TaskItem } from '../../models/Task';
@@ -19,7 +19,7 @@ type VirtualItemType =
 export function MainContent({ currentView, onOpenNewTask, onOpenZenMode }: MainContentProps) {
   const [collapsed, setCollapsed] = useState<Record<string, boolean>>({});
   
-  const { getTasksByCycle, getTasksByList, getSmartSortTasks, completeTask, deleteTask, cycles, lists, addListSection, updateListSection, listSections } = useAppStore();
+  const { getTasksByCycle, getTasksByList, getSmartSortTasks, completeTask, deleteTask, cycles, lists, addListSection, updateListSection, updateTaskSection, listSections } = useAppStore();
 
   const currentCycle = cycles.find(c => c.id === currentView);
   const currentList = lists?.find(l => `list_${l.id}` === currentView);
@@ -70,6 +70,8 @@ export function MainContent({ currentView, onOpenNewTask, onOpenZenMode }: MainC
     }
     setEditingSectionId(null);
   };
+
+  const [dragOverSectionId, setDragOverSectionId] = useState<string | null>(null);
 
   // 1. Flatten Data para Virtualización (QA Performance Optimization)
   const flattenedData = useMemo(() => {
@@ -185,9 +187,44 @@ export function MainContent({ currentView, onOpenNewTask, onOpenZenMode }: MainC
           if (data.type === 'header') {
             const isCustomSection = (data as any).sectionId !== undefined;
             const sectionId = (data as any).sectionId;
+            const isDraggingOver = dragOverSectionId === sectionId && isCustomSection;
+
             return (
-              <div key={data.category} style={virtualStyle} className="group-header" onClick={() => toggleCategory(data.category)}>
-                <h3 style={{ color: data.color, display: 'flex', alignItems: 'center', gap: 8, textTransform: 'capitalize', flex: 1 }}>
+              <div 
+                key={data.category} 
+                style={{
+                  ...virtualStyle,
+                  background: isDraggingOver ? 'var(--bg-surface-glass)' : 'transparent',
+                  transition: 'background 0.2s',
+                  borderRadius: 'var(--radius-md)'
+                }} 
+                className="group-header" 
+                onClick={() => toggleCategory(data.category)}
+                onDragOver={(e) => {
+                  if (!isCustomSection) return;
+                  e.preventDefault();
+                  setDragOverSectionId(sectionId);
+                }}
+                onDragLeave={() => {
+                  setDragOverSectionId(null);
+                }}
+                onDrop={(e) => {
+                  e.preventDefault();
+                  setDragOverSectionId(null);
+                  if (!isCustomSection) return;
+                  
+                  const draggedTaskId = e.dataTransfer.getData('text/plain');
+                  if (draggedTaskId) {
+                    updateTaskSection(draggedTaskId, sectionId);
+                  }
+                }}
+              >
+                <h3 
+                  style={{ color: data.color, display: 'flex', alignItems: 'center', gap: 8, flex: 1, margin: 0 }}
+                  onDoubleClick={(e) => {
+                    if (isCustomSection) startEditingSection(e, sectionId, data.title);
+                  }}
+                >
                   {data.category === 'smart' && <Sparkles size={20} />} 
                   
                   {editingSectionId === sectionId && isCustomSection ? (
@@ -196,28 +233,19 @@ export function MainContent({ currentView, onOpenNewTask, onOpenZenMode }: MainC
                       value={editingSectionName}
                       onChange={e => setEditingSectionName(e.target.value)}
                       onClick={e => e.stopPropagation()}
+                      onBlur={(e) => saveSectionName(e as any, sectionId)}
                       onKeyDown={e => {
                         if (e.key === 'Enter') saveSectionName(e as any, sectionId);
                       }}
                       style={{ 
-                        background: 'transparent', border: 'none', borderBottom: '1px solid var(--border-focus)', 
-                        color: 'var(--text-primary)', fontSize: 'inherit', fontFamily: 'inherit', outline: 'none'
+                        background: 'transparent', border: 'none', borderBottom: '2px solid var(--accent-primary)', 
+                        color: 'var(--text-primary)', fontSize: 'inherit', fontFamily: 'inherit', outline: 'none',
+                        fontWeight: 'bold', width: '100%'
                       }}
                       autoFocus
                     />
                   ) : (
-                    <span>{data.title}</span>
-                  )}
-                  
-                  {isCustomSection && editingSectionId !== sectionId && (
-                    <button className="icon-btn" onClick={(e) => startEditingSection(e, sectionId, data.title)} style={{ padding: 4 }}>
-                      <Edit2 size={14} color="var(--text-secondary)" />
-                    </button>
-                  )}
-                  {isCustomSection && editingSectionId === sectionId && (
-                    <button className="icon-btn" onClick={(e) => saveSectionName(e, sectionId)} style={{ padding: 4 }}>
-                      <Check size={14} color="var(--accent-green)" />
-                    </button>
+                    <span style={{ fontWeight: 700, fontSize: '1.25rem' }}>{data.title}</span>
                   )}
                 </h3>
                 <ChevronDown 
