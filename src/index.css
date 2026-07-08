@@ -1,0 +1,158 @@
+:root {
+  --bg-color: #0d0d0d;
+  --sidebar-bg: #161618;
+  --text-main: #f2f2f2;
+  --text-muted: #88888a;
+  --accent-color: #0a84ff;
+  --accent-hover: #007aff;
+  --border-color: #2c2c2e;
+  --card-bg: #1c1c1e;
+  --radius-lg: 16px;
+  --radius-md: 12px;
+  --radius-sm: 8px;
+  --font-sans: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: var(--font-sans);
+  background-color: var(--bg-color);
+  color: var(--text-main);
+  height: 100vh;
+  overflow: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Premium Layout */
+.app-container {
+  display: flex;
+  height: 100vh;
+  width: 100vw;
+}
+
+.sidebar {
+  width: 300px;
+  background-color: var(--sidebar-bg);
+  border-right: 1px solid var(--border-color);
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.main-content {
+  flex: 1;
+  padding: 40px 60px;
+  overflow-y: auto;
+  background: linear-gradient(180deg, rgba(28,28,30,0) 0%, rgba(13,13,13,1) 100%);
+}
+
+.header {
+  font-size: 2rem;
+  font-weight: 700;
+  margin-bottom: 32px;
+  letter-spacing: -0.5px;
+}
+
+/* Smart Lists Grid */
+.smart-lists {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+  margin-bottom: 32px;
+}
+
+.smart-card {
+  background-color: var(--card-bg);
+  border-radius: var(--radius-lg);
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: 1px solid transparent;
+}
+
+.smart-card:hover {
+  transform: translateY(-2px);
+  border-color: var(--border-color);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+}
+
+.icon-wrapper {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+}
+
+.card-title {
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+/* Task Item */
+.task-item {
+  display: flex;
+  align-items: center;
+  padding: 16px;
+  background-color: var(--card-bg);
+  border-radius: var(--radius-md);
+  margin-bottom: 12px;
+  border: 1px solid transparent;
+  transition: all 0.2s ease;
+}
+
+.task-item:hover {
+  border-color: var(--border-color);
+  background-color: #242426;
+}
+
+.checkbox {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: 2px solid var(--text-muted);
+  margin-right: 16px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.task-item:hover .checkbox {
+  border-color: var(--accent-color);
+}
+
+.task-details {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.task-title {
+  font-size: 1.1rem;
+  font-weight: 500;
+}
+
+.task-meta {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  margin-top: 4px;
+}
+
+.time-pill {
+  background-color: #2c2c2e;
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  margin-right: 8px;
+  display: inline-block;
+}
