@@ -1,8 +1,7 @@
 import { useState, useEffect } from 'react';
-import { X, Clock } from 'lucide-react';
+import { X, Clock, Mic, MicOff } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAppStore } from '../../store/useAppStore';
-import type { FrequencyLevel } from '../../models/Task';
 import { parseNaturalLanguage } from '../../utils/nlp';
 import './TaskDrawer.css';
 
@@ -13,12 +12,18 @@ interface TaskDrawerProps {
 
 export function TaskDrawer({ isOpen, onClose }: TaskDrawerProps) {
   const addTask = useAppStore(state => state.addTask);
+  const cycles = useAppStore(state => state.cycles);
   
   const [title, setTitle] = useState('');
   const [notes, setNotes] = useState('');
-  const [frequency, setFrequency] = useState<FrequencyLevel>(0);
+  const [cycleId, setCycleId] = useState('cycle_day');
   const [category, setCategory] = useState('limpieza');
   const [alerts, setAlerts] = useState<string[]>([]);
+  const [isListening, setIsListening] = useState(false);
+  const [blockedBy, setBlockedBy] = useState<string[]>([]);
+
+  // Tareas disponibles para bloquear (no pueden ser la misma, y deben estar PENDING)
+  const availableTasks = Object.values(useAppStore(state => state.tasks)).filter(t => t.status === 'PENDING' && !t.is_deleted);
 
   // Efecto NLP en tiempo real: Escucha el título y autocompleta horas
   useEffect(() => {
@@ -39,10 +44,11 @@ export function TaskDrawer({ isOpen, onClose }: TaskDrawerProps) {
     if (!title.trim()) return;
     
     addTask({
+      categoryId: category,
       title,
       notes,
-      frequencyLevel: frequency,
-      categoryId: category,
+      cycleId,
+      blockedBy,
       dueDate: new Date(),
       alerts
     });
@@ -50,13 +56,43 @@ export function TaskDrawer({ isOpen, onClose }: TaskDrawerProps) {
     // Reset y cerrar
     setTitle('');
     setNotes('');
+    setCycleId('cycle_day');
     setAlerts([]);
-    setFrequency(0);
+    setBlockedBy([]);
     onClose();
   };
 
   const removeAlert = (timeToRemove: string) => {
     setAlerts(alerts.filter(t => t !== timeToRemove));
+  };
+
+  const toggleListening = () => {
+    if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+      alert('Tu navegador no soporta captura de voz nativa.');
+      return;
+    }
+
+    if (isListening) return; // Ya está escuchando
+
+    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    const recognition = new SpeechRecognition();
+    
+    recognition.lang = 'es-ES';
+    recognition.continuous = false;
+    recognition.interimResults = false;
+
+    recognition.onstart = () => setIsListening(true);
+    
+    recognition.onresult = (event: any) => {
+      const transcript = event.results[0][0].transcript;
+      setTitle(prev => prev ? `${prev} ${transcript}` : transcript);
+      setIsListening(false);
+    };
+
+    recognition.onerror = () => setIsListening(false);
+    recognition.onend = () => setIsListening(false);
+
+    recognition.start();
   };
 
   return (
@@ -89,15 +125,25 @@ export function TaskDrawer({ isOpen, onClose }: TaskDrawerProps) {
             <div className="drawer-content" role="form" aria-labelledby="drawer-title">
               
               <div className="input-group">
-                <input 
-                  type="text" 
-                  className="title-input" 
-                  placeholder="Ej: Tomar pastillas mañana a las 5 y a las 8..." 
-                  value={title}
-                  onChange={e => setTitle(e.target.value)}
-                  autoFocus 
-                  aria-label="Título de la tarea con reconocimiento de horas"
-                />
+                <div style={{ display: 'flex', alignItems: 'center' }}>
+                  <input 
+                    type="text" 
+                    className="title-input" 
+                    placeholder="Ej: Tomar pastillas mañana a las 5 y a las 8..." 
+                    value={title}
+                    onChange={e => setTitle(e.target.value)}
+                    autoFocus 
+                    aria-label="Título de la tarea con reconocimiento de horas"
+                    style={{ flex: 1 }}
+                  />
+                  <button 
+                    onClick={toggleListening} 
+                    aria-label="Dictar por voz"
+                    style={{ background: 'none', border: 'none', color: isListening ? '#ff3b30' : 'var(--accent-color)', cursor: 'pointer', padding: '0 16px' }}
+                  >
+                    {isListening ? <MicOff size={20} className="pulse-anim" /> : <Mic size={20} />}
+                  </button>
+                </div>
                 <textarea 
                   className="notes-input" 
                   placeholder="Notas adicionales" 
@@ -112,16 +158,18 @@ export function TaskDrawer({ isOpen, onClose }: TaskDrawerProps) {
               <div className="details-group">
                 <div className="detail-row">
                   <span className="detail-label">Frecuencia</span>
-                  <select 
-                    className="detail-select" 
-                    value={frequency} 
-                    onChange={e => setFrequency(Number(e.target.value) as FrequencyLevel)}
-                  >
-                    <option value="0">Una vez</option>
-                    <option value="1">Diario</option>
-                    <option value="2">Semanal</option>
-                    <option value="3">Mensual</option>
-                  </select>
+                  <div className="frequency-selector">
+                    {cycles.map(cycle => (
+                      <button 
+                        key={cycle.id}
+                        className={`freq-btn ${cycleId === cycle.id ? 'active' : ''}`}
+                        onClick={() => setCycleId(cycle.id)}
+                        type="button"
+                      >
+                        {cycle.emoji} {cycle.name}
+                      </button>
+                    ))}
+                  </div>
                 </div>
                 <div className="divider"></div>
                 <div className="detail-row">
@@ -134,6 +182,25 @@ export function TaskDrawer({ isOpen, onClose }: TaskDrawerProps) {
                     <option value="limpieza">Limpieza</option>
                     <option value="compra">Compra</option>
                     <option value="skincare">Skincare</option>
+                    <option value="inbox">Bandeja de Entrada</option>
+                  </select>
+                </div>
+                <div className="divider"></div>
+                <div className="detail-row">
+                  <span className="detail-label">Bloqueada Por</span>
+                  <select 
+                    multiple
+                    className="detail-select"
+                    value={blockedBy}
+                    onChange={e => {
+                      const options = Array.from(e.target.selectedOptions, option => option.value);
+                      setBlockedBy(options);
+                    }}
+                    style={{ height: '80px' }}
+                  >
+                    {availableTasks.map(t => (
+                      <option key={t.id} value={t.id}>{t.title}</option>
+                    ))}
                   </select>
                 </div>
               </div>

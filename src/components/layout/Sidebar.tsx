@@ -1,5 +1,5 @@
-import { Calendar, Inbox, CalendarDays, Plus } from 'lucide-react';
-import clsx from 'clsx';
+import { Plus, BarChart2, Settings, DownloadCloud, Zap } from 'lucide-react';
+import { useAppStore } from '../../store/useAppStore';
 import './Layout.css';
 
 interface SidebarProps {
@@ -8,36 +8,68 @@ interface SidebarProps {
 }
 
 export function Sidebar({ currentView, onSelectView }: SidebarProps) {
+  const cycles = useAppStore(state => state.cycles);
+  
   return (
     <aside className="sidebar">
+      <div className="user-profile">
+        <div className="avatar">E</div>
+        <div className="user-info">
+          <div className="user-name text-title">Eneko Ruiz</div>
+          <div className="user-email text-muted">Plan Élite</div>
+        </div>
+      </div>
+
       <div className="search-bar">
         <input type="text" placeholder="Buscar" />
       </div>
 
       <div className="smart-lists-nav">
+        {cycles.filter(c => c.isPinned).map(cycle => (
+          <div 
+            key={cycle.id}
+            className={`nav-item ${currentView === cycle.id ? 'active' : ''}`}
+            onClick={() => onSelectView(cycle.id)}
+          >
+            <span style={{ fontSize: '1.2rem' }}>{cycle.emoji}</span>
+            <span>{cycle.name}</span>
+          </div>
+        ))}
+
         <div 
-          className={clsx('nav-item', currentView === 'TODAY' && 'active')}
-          onClick={() => onSelectView('TODAY')}
+          className={`nav-item ${currentView === 'ANALYTICS' ? 'active' : ''}`}
+          onClick={() => onSelectView('ANALYTICS')}
+          style={{ marginTop: 'var(--space-12)' }}
         >
-          <div className="icon-box blue"><Calendar size={18} /></div>
-          <span>Mi Día</span>
-          <span className="count">3</span>
+          <BarChart2 size={18} />
+          <span>Estadísticas</span>
         </div>
+        
         <div 
-          className={clsx('nav-item', currentView === 'WEEK' && 'active')}
-          onClick={() => onSelectView('WEEK')}
+          className="nav-item"
+          onClick={() => onSelectView('MANAGE_CYCLES')}
+          style={{ color: 'var(--text-tertiary)' }}
         >
-          <div className="icon-box red"><CalendarDays size={18} /></div>
-          <span>Mi Semana</span>
-          <span className="count">12</span>
+          <Settings size={18} />
+          <span>Gestionar Ciclos</span>
         </div>
+        
         <div 
-          className={clsx('nav-item', currentView === 'MONTH' && 'active')}
-          onClick={() => onSelectView('MONTH')}
+          className="nav-item"
+          onClick={() => onSelectView('DATA')}
+          style={{ color: 'var(--text-tertiary)' }}
         >
-          <div className="icon-box orange"><Inbox size={18} /></div>
-          <span>Mi Mes</span>
-          <span className="count">45</span>
+          <DownloadCloud size={18} />
+          <span>Importar / Exportar</span>
+        </div>
+
+        <div 
+          className="nav-item"
+          onClick={() => onSelectView('BRAIN_DUMP')}
+          style={{ color: 'var(--accent-glow)' }}
+        >
+          <Zap size={18} color="var(--accent-primary)" />
+          <span style={{ color: 'var(--accent-primary)', fontWeight: 500 }}>Brain Dump</span>
         </div>
       </div>
 

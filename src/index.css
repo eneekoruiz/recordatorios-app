@@ -1,19 +1,60 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@500;600;700&display=swap');
+
 :root {
-  --bg-color: #0d0d0d;
-  --sidebar-bg: #161618;
-  --text-main: #f2f2f2;
-  --text-muted: #88888a;
-  --accent-color: #0a84ff;
-  --accent-hover: #007aff;
-  --border-color: #2c2c2e;
-  --card-bg: #1c1c1e;
-  --radius-lg: 16px;
-  --radius-md: 12px;
+  /* ========================================================
+     DESIGN SYSTEM TOKENS
+  ======================================================== */
+  
+  /* Color Palette - Midnight & Slate (Calm & Premium) */
+  --bg-base: #09090b;
+  --bg-surface: #18181b;
+  --bg-surface-glass: rgba(24, 24, 27, 0.65);
+  
+  --accent-primary: #0a84ff;
+  --accent-glow: rgba(10, 132, 255, 0.3);
+  --accent-purple: #bf5af2;
+  --accent-green: #30d158;
+  --accent-red: #ff453a;
+
+  --text-primary: #f4f4f5;
+  --text-secondary: #a1a1aa;
+  --text-tertiary: #52525b;
+
+  --border-subtle: #27272a;
+  --border-focus: rgba(255, 255, 255, 0.15);
+
+  /* Spacing Scale (Mathematical) */
+  --space-2: 0.125rem; /* 2px */
+  --space-4: 0.25rem;  /* 4px */
+  --space-8: 0.5rem;   /* 8px */
+  --space-12: 0.75rem; /* 12px */
+  --space-16: 1rem;    /* 16px */
+  --space-24: 1.5rem;  /* 24px */
+  --space-32: 2rem;    /* 32px */
+  --space-48: 3rem;    /* 48px */
+  --space-64: 4rem;    /* 64px */
+
+  /* Border Radius */
   --radius-sm: 8px;
-  --font-sans: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  --radius-md: 12px;
+  --radius-lg: 18px;
+  --radius-xl: 24px;
+  --radius-full: 9999px;
+
+  /* Typography */
+  --font-sans: 'Inter', system-ui, sans-serif;
+  --font-display: 'Outfit', 'Inter', system-ui, sans-serif;
+
+  /* Shadows & Depth */
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.4);
+  --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.5);
+  --shadow-glow: 0 0 20px var(--accent-glow);
 }
 
-* {
+/* ========================================================
+   CSS RESET & BASE
+======================================================== */
+*, *::before, *::after {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
@@ -21,138 +62,132 @@
 
 body {
   font-family: var(--font-sans);
-  background-color: var(--bg-color);
-  color: var(--text-main);
+  background-color: var(--bg-base);
+  color: var(--text-primary);
   height: 100vh;
   overflow: hidden;
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
-/* Premium Layout */
+/* ========================================================
+   UTILITY & LAYOUT
+======================================================== */
 .app-container {
   display: flex;
   height: 100vh;
   width: 100vw;
-}
-
-.sidebar {
-  width: 300px;
-  background-color: var(--sidebar-bg);
-  border-right: 1px solid var(--border-color);
-  padding: 24px;
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
+  background: radial-gradient(circle at top left, #121214 0%, var(--bg-base) 100%);
 }
 
 .main-content {
   flex: 1;
-  padding: 40px 60px;
+  padding: var(--space-48) var(--space-64);
   overflow-y: auto;
-  background: linear-gradient(180deg, rgba(28,28,30,0) 0%, rgba(13,13,13,1) 100%);
+  position: relative;
+  /* Scrollbar estético */
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-subtle) transparent;
 }
 
-.header {
-  font-size: 2rem;
+/* ========================================================
+   TYPOGRAPHY HIERARCHY
+======================================================== */
+.text-display {
+  font-family: var(--font-display);
+  font-size: 2.5rem;
   font-weight: 700;
-  margin-bottom: 32px;
-  letter-spacing: -0.5px;
+  letter-spacing: -0.02em;
+  color: var(--text-primary);
+  margin-bottom: var(--space-32);
 }
 
-/* Smart Lists Grid */
-.smart-lists {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 16px;
-  margin-bottom: 32px;
-}
-
-.smart-card {
-  background-color: var(--card-bg);
-  border-radius: var(--radius-lg);
-  padding: 16px;
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  border: 1px solid transparent;
-}
-
-.smart-card:hover {
-  transform: translateY(-2px);
-  border-color: var(--border-color);
-  box-shadow: 0 8px 24px rgba(0,0,0,0.2);
-}
-
-.icon-wrapper {
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1.2rem;
-}
-
-.card-title {
+.text-title {
+  font-family: var(--font-display);
+  font-size: 1.25rem;
   font-weight: 600;
-  color: var(--text-muted);
+  letter-spacing: -0.01em;
 }
 
-/* Task Item */
-.task-item {
-  display: flex;
-  align-items: center;
-  padding: 16px;
-  background-color: var(--card-bg);
-  border-radius: var(--radius-md);
-  margin-bottom: 12px;
-  border: 1px solid transparent;
-  transition: all 0.2s ease;
+.text-body {
+  font-size: 1rem;
+  font-weight: 400;
+  line-height: 1.5;
 }
 
-.task-item:hover {
-  border-color: var(--border-color);
-  background-color: #242426;
-}
-
-.checkbox {
-  width: 24px;
-  height: 24px;
-  border-radius: 50%;
-  border: 2px solid var(--text-muted);
-  margin-right: 16px;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.task-item:hover .checkbox {
-  border-color: var(--accent-color);
-}
-
-.task-details {
-  display: flex;
-  flex-direction: column;
-  flex: 1;
-}
-
-.task-title {
-  font-size: 1.1rem;
+.text-muted {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
   font-weight: 500;
 }
 
-.task-meta {
-  font-size: 0.85rem;
-  color: var(--text-muted);
-  margin-top: 4px;
+/* ========================================================
+   GLASSMORPHISM & SURFACES
+======================================================== */
+.surface-glass {
+  background: var(--bg-surface-glass);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid var(--border-focus);
+  /* Aceleración GPU para evitar tirones con el Blur */
+  transform: translateZ(0); 
 }
 
+.surface-card {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.surface-card:hover {
+  border-color: var(--border-focus);
+  box-shadow: var(--shadow-md);
+}
+
+/* ========================================================
+   INPUTS & BUTTONS
+======================================================== */
+.input-minimal {
+  background: transparent;
+  border: none;
+  color: var(--text-primary);
+  font-family: var(--font-sans);
+  font-size: 1.25rem;
+  outline: none;
+  width: 100%;
+}
+.input-minimal::placeholder {
+  color: var(--text-tertiary);
+}
+
+.btn-icon {
+  background: transparent;
+  border: none;
+  color: var(--text-secondary);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-full);
+  padding: var(--space-8);
+  transition: background 0.2s ease, color 0.2s ease;
+}
+.btn-icon:hover {
+  background: var(--border-subtle);
+  color: var(--text-primary);
+}
+
+/* ========================================================
+   CUSTOM COMPONENTS
+======================================================== */
 .time-pill {
-  background-color: #2c2c2e;
-  padding: 4px 8px;
-  border-radius: 12px;
+  background: var(--border-subtle);
+  color: var(--text-secondary);
+  padding: var(--space-4) var(--space-8);
+  border-radius: var(--radius-full);
   font-size: 0.75rem;
-  margin-right: 8px;
-  display: inline-block;
+  font-weight: 600;
+  letter-spacing: 0.5px;
 }
