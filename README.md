@@ -1,30 +1,39 @@
 # Recordatorios App
 
-PWA de gestión de tareas y recordatorios diseñada con enfoque offline-first.
+Offline-first Progressive Web Application for managing tasks and reminders with local IndexedDB storage and virtualized rendering.
 
-## Características
+## Tech Stack
 
-- Almacenamiento local principal en IndexedDB mediante Dexie.js.
-- Interfaz reactiva construida con React 18, TypeScript y Tailwind CSS.
-- Sincronización remota opcional con backend PostgreSQL / Prisma y almacenamiento S3.
-- Gestión de estado global con Zustand.
-- Soporte para instalación como PWA y funcionamiento sin conexión.
+- **Frontend:** React 18, TypeScript, Vite, Tailwind CSS, Lucide Icons, Framer Motion
+- **Storage & PWA:** Dexie.js (IndexedDB wrapper), `dexie-react-hooks`, Vite Plugin PWA
+- **State & Performance:** Zustand, `@tanstack/react-virtual`
+- **Linting:** Oxlint
 
-## Stack técnico
+## Architecture & Key Decisions
 
-- **Frontend:** React, TypeScript, Vite, Tailwind CSS, Lucide Icons.
-- **Persistencia local:** Dexie.js (IndexedDB).
-- **Backend / Sincronización:** Prisma Client, Supabase / PostgreSQL, AWS S3 SDK.
+- **Dexie.js Reactive Persistence:** Relational task and folder schemas stored client-side in IndexedDB using Dexie, with real-time UI updates driven by `useLiveQuery`.
+- **Virtualized Lists:** Utilizes TanStack Virtual for item list rendering, maintaining 60 FPS scrolling performance across large task archives.
+- **PWA Service Worker:** Offline assets and app shell cached locally via Vite Plugin PWA for standalone desktop and mobile installation.
 
-## Instalación y desarrollo local
+## Local Setup
+
+### Prerequisites
+
+- Node.js 18+
+
+### Installation & Run
 
 ```bash
+git clone https://github.com/eneekoruiz/recordatorios-app.git
+cd recordatorios-app
 npm install
+
+# Start development server
 npm run dev
-```
 
-Para generar la compilación de producción:
+# Run linter
+npm run lint
 
-```bash
+# Build production bundle
 npm run build
 ```
